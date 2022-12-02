@@ -1,28 +1,34 @@
-fn main() {
-    let elves = vec![
-        vec![1000, 2000, 3000],
-        vec![4000],
-        vec![5000, 6000],
-        vec![7000, 8000, 9000],
-        vec![10000],
-    ];
+use std::{
+    fs::File,
+    io::{self, BufRead},
+};
 
-    let mut calories = Vec::<i32>::new();
-    for elf in elves.iter() {
-        let mut sum = 0;
-        for calorie_count in elf.iter() {
-            sum += *calorie_count;
-        }
-
-        calories.push(sum);
-    }
+fn main() -> io::Result<()> {
+    let file = File::open("./day_01/input_01.txt")?;
+    let reader = io::BufReader::new(file);
 
     let mut max = 0;
-    for calorie_count in calories.iter() {
-        if max < *calorie_count {
-            max = *calorie_count
-        }
+    let mut current_elf = 0;
+
+    for line_result in reader.lines() {
+        let line = match line_result {
+            Ok(s) => s,
+            Err(_) => continue,
+        };
+
+        current_elf += match line.parse::<i32>() {
+            Ok(x) => x,
+            Err(_) => {
+                if current_elf > max {
+                    max = current_elf
+                }
+
+                current_elf = 0;
+                continue;
+            },
+        };
     }
 
-    println!("max: {:?}", max)
+    println!("max calories: {}", max);
+    Ok(())
 }
