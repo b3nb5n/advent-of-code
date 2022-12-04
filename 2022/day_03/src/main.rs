@@ -6,21 +6,20 @@ use std::{
 };
 
 fn shared_char(strings: &[String]) -> Option<char> {
-    let mut char_sets = strings
+    let shared_chars = strings
         .iter()
         .map(|string| HashSet::<_, RandomState>::from_iter(string.chars()))
         .collect::<Vec<_>>()
-        .into_iter();
+        .into_iter()
+        .reduce(|a, b| a.bitand(&b));
 
-    let mut shared_chars = char_sets.next().unwrap();
-    for set in char_sets {
-        shared_chars = shared_chars.bitand(&set);
+    if let Some(set) = shared_chars {
+        if let Some(ch) = set.iter().next() {
+            return Some(*ch);
+        }
     }
 
-    match shared_chars.iter().next() {
-        Some(ch) => Some(*ch),
-        None => None,
-    }
+    None
 }
 
 fn priority(ch: char) -> i32 {
