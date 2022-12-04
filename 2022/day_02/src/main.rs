@@ -13,10 +13,30 @@ enum Move {
 impl Move {
     fn from_char(ch: char) -> Result<Self, String> {
         match ch {
-            'A' | 'X' => Ok(Self::Rock),
-            'B' | 'Y' => Ok(Self::Paper),
-            'C' | 'Z' => Ok(Self::Scissors),
+            'A' => Ok(Self::Rock),
+            'B' => Ok(Self::Paper),
+            'C' => Ok(Self::Scissors),
             _ => Err(format!("unknow character: {}", ch).to_owned()),
+        }
+    }
+
+    fn from_outcome(outcome: Outcome, op_move: Self) -> Self {
+        match op_move {
+            Self::Rock => match outcome {
+                Outcome::Win => Self::Paper,
+                Outcome::Lose => Self::Scissors,
+                Outcome::Draw => Self::Rock,
+            },
+            Self::Paper => match outcome {
+                Outcome::Win => Self::Scissors,
+                Outcome::Lose => Self::Rock,
+                Outcome::Draw => Self::Paper,
+            },
+            Self::Scissors => match outcome {
+                Outcome::Win => Self::Rock,
+                Outcome::Lose => Self::Paper,
+                Outcome::Draw => Self::Scissors,
+            },
         }
     }
 }
@@ -28,6 +48,15 @@ enum Outcome {
 }
 
 impl Outcome {
+    fn from_char(ch: char) -> Result<Self, String> {
+        match ch {
+            'X' => Ok(Self::Lose),
+            'Y' => Ok(Self::Draw),
+            'Z' => Ok(Self::Win),
+            _ => Err(format!("unknown character: {}", ch).to_owned()),
+        }
+    }
+
     fn from_moves(mv: Move, op_mv: Move) -> Self {
         // this implementation makes me feel very nooby
         // rust hurts me so much and its only day 2
@@ -64,8 +93,9 @@ fn main() {
         .map(|read_result| {
             let line = read_result.expect("error reading line");
             let bytes = line.as_bytes();
-            let mv = Move::from_char(bytes[2] as char).expect("error parsing move");
             let op_mv = Move::from_char(bytes[0] as char).expect("error parsing opponent move");
+            let outcome = Outcome::from_char(bytes[2] as char).expect("error parsing outcome");
+            let mv = Move::from_outcome(outcome, op_mv);
 
             score(mv, op_mv)
         })
