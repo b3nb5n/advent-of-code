@@ -1,18 +1,26 @@
 use std::{
+    collections::{hash_map::RandomState, HashSet},
     fs,
     io::{self, BufRead},
+    ops::BitAnd,
 };
 
-fn duplicate(a: &str, b: &str) -> Option<char> {
-    for item in a.chars() {
-        for comp_item in b.chars() {
-            if item == comp_item {
-                return Some(item);
-            }
-        }
+fn shared_char(strings: &[String]) -> Option<char> {
+    let mut char_sets = strings
+        .iter()
+        .map(|string| HashSet::<_, RandomState>::from_iter(string.chars()))
+        .collect::<Vec<_>>()
+        .into_iter();
+
+    let mut shared_chars = char_sets.next().unwrap();
+    for set in char_sets {
+        shared_chars = shared_chars.bitand(&set);
     }
 
-    None
+    match shared_chars.iter().next() {
+        Some(ch) => Some(*ch),
+        None => None,
+    }
 }
 
 fn priority(ch: char) -> i32 {
@@ -27,19 +35,16 @@ fn priority(ch: char) -> i32 {
 
 fn main() {
     let file = fs::File::open("./day_03/input_01.txt").expect("error reading file");
-    let reader = io::BufReader::new(file);
-    let total_priority: i32 = reader
-        .lines()
-        .map(|read_result| {
-            let line = read_result.expect("error reading line");
-            let duplicate_item = duplicate(&line[..line.len() / 2], &line[(line.len() / 2)..])
-                .expect("No duplicate found in line");
+    let lines = io::BufReader::new(file).lines().map(|line| line.unwrap());
 
-            priority(duplicate_item)
-        })
+    let total_priority: i32 = lines
+        .collect::<Vec<_>>()
+        .chunks(3)
+        .map(|lines| shared_char(lines).expect("no shared characters"))
         .collect::<Vec<_>>()
         .iter()
+        .map(|badge| priority(*badge))
         .sum();
 
-    println!("total priority: {}", total_priority)
+    println!("total priority: {:?}", total_priority)
 }
