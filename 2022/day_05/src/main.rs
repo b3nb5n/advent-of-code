@@ -27,9 +27,10 @@ fn main() {
         let src = segments[3].parse::<usize>().expect("error parsing src index") - 1;
         let dst = segments[5].parse::<usize>().expect("error parsing dest index") - 1;
 
-        for _ in 0..count {
-            let container = stacks[src].pop().expect("tried to take from empty stack");
-            stacks[dst].push(container);
+        let sub_stack = stacks[src][stacks[src].len() - count..].to_vec();
+        for container in sub_stack.iter() {
+            stacks[dst].push(*container);
+            stacks[src].pop();
         }
     }
 
